@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>药师帮-供应商管理平台</title>
+    <style>
+        /* ==========================================================================
+           1. CSS Reset & 基础变量 (橙色系)
+           ========================================================================== */
+        :root {
+            --primary-color: #ff6600;       /* 药师帮/淘宝风格橙 */
+            --primary-hover: #ff8533;
+            --text-color: #333333;          /* 主要文字 */
+            --text-secondary: #666666;      /* 次要文字 */
+            --border-color: #e5e5e5;        /* 边框色 */
+            --bg-body: #f0f2f5;             /* 页面背景灰 */
+            --bg-sidebar: #ffffff;          /* 侧边栏改为白色 */
+            --danger-color: #ff4d4f;
+            --success-color: #52c41a;
+            --header-height: 50px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-color);
+            font-size: 12px; /* 紧凑风格 */
+            line-height: 1.5;
+            height: 100vh;
+            display: flex;
+        }
+
+        a {
+            color: #0066cc; /* 链接色改为通用的蓝色，与橙色区分 */
+            text-decoration: none;
+            cursor: pointer;
+        }
+        a:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+
+        /* 工具类 */
+        .hidden { display: none !important; }
+        .ml-10 { margin-left: 10px; }
+        .mt-10 { margin-top: 10px; }
+        .text-orange { color: var(--primary-color); }
+        .text-gray { color: #999; }
+        .bold { font-weight: bold; }
+
+        /* ==========================================================================
+           2. 侧边栏 (Light Theme)
+           ========================================================================== */
+        .sidebar {
+            width: 180px; /* 稍微变窄 */
+            background: var(--bg-sidebar);
+            flex-shrink: 0;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .logo {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            padding-left: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .logo img {
+            height: 32px;
+            margin-right: 8px;
+        }
+        .logo-text {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .menu {
+            padding-top: 10px;
+        }
+        .menu-group {
+            border-bottom: 1px solid #f5f5f5;
+            margin-bottom: 5px;
+        }
+        .menu-item {
+            height: 36px;
+            line-height: 36px;
+            padding-left: 20px;
+            cursor: pointer;
+            color: #333;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        .menu-item:hover {
+            background-color: #fff7f0;
+            color: var(--primary-color);
+        }
+        .menu-item.active {
+            color: var(--primary-color);
+            background-color: #fff0e6;
+            border-right: 3px solid var(--primary-color);
+        }
+        .menu-icon {
+            margin-right: 8px;
+            font-size: 14px;
+            width: 16px;
+            text-align: center;
+        }
+        .menu-arrow {
+            position: absolute;
+            right: 10px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        /* ==========================================================================
+           3. 主内容区
+           ========================================================================== */
+        .main-layout {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #fff; /* 主背景改为白，符合截图 */
+        }
+
+        /* 顶部 Header */
+        .header {
+            height: 36px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        .store-name {
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        .store-badge {
+            background: #52c41a;
+            color: #fff;
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-size: 10px;
+            margin-right: 10px;
+        }
+        .erp-status {
+            color: #666;
+        }
+        .erp-status span {
+            color: red;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 15px;
+            color: #666;
+        }
+
+        /* 内容 Tab 栏 (仿截图) */
+        .content-tabs {
+            height: 40px;
+            background: #fff;
+            border-bottom: 2px solid var(--primary-color);
+            padding-left: 20px;
+            display: flex;
+            align-items: flex-end;
+        }
+        .tab-item {
+            padding: 8px 20px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            background: #f8f8f8;
+            margin-right: 4px;
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            top: 2px; /* 盖住底边框 */
+        }
+        .tab-item.active {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        /* 页面容器 */
+        .page-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        /* ==========================================================================
+           4. 资金管理 - 营销服务额度页 (特定样式)
+           ========================================================================== */
+        .quota-header-banner {
+            background: #fff;
+            border: 1px solid #eee;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .quota-big-text {
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .quota-number {
+            font-size: 24px;
+            color: #ffaa00; /* 金黄色 */
+            font-weight: bold;
+            margin-right: 20px;
+        }
+        .btn-buy {
+            background-color: #e65c00; /* 深橙色按钮 */
+            color: #fff;
+            border: none;
+            padding: 6px 20px;
+            border-radius: 2px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-buy:hover {
+            background-color: #cc5200;
+        }
+        .quota-desc {
+            margin-left: 40px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        /* 筛选栏 */
+        .filter-bar {
+            background: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .filter-item {
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .filter-label {
+            margin-right: 5px;
+        }
+        .input-control {
+            height: 28px;
+            border: 1px solid #ccc;
+            padding: 0 5px;
+            /* width: 140px; */
+            border-radius: 2px;
+        }
+        .input-control.readonly {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+        .btn-search {
+            background: #e65c00;
+            color: #fff;
+            border: none;
+            height: 28px;
+            padding: 0 15px;
+            margin-right: 10px;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+        .btn-export {
+            background: #e65c00;
+            color: #fff;
+            border: none;
+            height: 28px;
+            padding: 0 15px;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+
+        /* 表格样式 (仿 EasyUI/Element 风格) */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #ddd;
+        }
+        .data-table th {
+            background: #eee;
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+            font-weight: bold;
+            color: #333;
+        }
+        .data-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+            color: #333;
+        }
+        .data-table tr:hover {
+            background: #fdfdfd;
+        }
+        .data-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        /* ==========================================================================
+           5. 专品券推广列表页 (适配新风格)
+           ========================================================================== */
+        .btn-create {
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .promotion-list-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #eee;
+        }
+        .promo-status-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 12px;
+        }
+        .status-running { background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff; }
+        .status-pending { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+
+        /* ==========================================================================
+           7. 新建/表单页样式 (View-Create)
+           ========================================================================== */
+        .form-container {
+            background: #fff;
+            padding: 20px;
+            /* border: 1px solid #ddd; */
+        }
+        .form-section {
+            margin-bottom: 30px;
+        }
+        .form-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            padding-left: 10px;
+            border-left: 3px solid var(--primary-color);
+        }
+        .form-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .form-label {
+            width: 120px;
+            text-align: right;
+            margin-right: 20px;
+            color: #666;
+            padding-top: 5px;
+        }
+        .form-label.required::before {
+            content: "* ";
+            color: var(--danger-color);
+        }
+        .form-content {
+            flex: 1;
+            max-width: 600px;
+        }
+        .hint-text {
+            color: #999;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            padding-top: 5px;
+        }
+        .radio-label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .radio-label input {
+            margin-right: 5px;
+        }
+        .info-block {
+            background: #fff7e6;
+            border: 1px solid #ffd591;
+            padding: 10px;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+        .error-msg {
+            color: var(--danger-color);
+            margin-top: 4px;
+            display: none;
+        }
+        .form-item.has-error .input-control {
+            border-color: var(--danger-color);
+        }
+        .form-item.has-error .error-msg {
+            display: block;
+        }
+        .btn-cancel {
+            background: #fff;
+            border: 1px solid #ddd;
+            color: #333;
+            padding: 6px 25px;
+            border-radius: 2px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn-submit {
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 6px 25px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .btn-submit:hover {
+            background: var(--primary-hover);
+        }
+
+        /* ==========================================================================
+           8. 详情页样式 (View-Detail)
+           ========================================================================== */
+        .detail-header {
+            margin-bottom: 20px;
+        }
+        .detail-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .back-link {
+            font-size: 12px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #fcfcfc;
+            border: 1px solid #eee;
+            padding: 20px;
+            border-radius: 2px;
+        }
+        .stat-label {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-unit {
+            font-size: 12px;
+            margin-left: 5px;
+            color: #666;
+        }
+        .chart-placeholder {
+            height: 300px;
+            background: #fafafa;
+            border: 1px dashed #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            flex-direction: column;
+        }
+
+        /* ==========================================================================
+           6. 模态框 (购买额度)
+           ========================================================================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #fff;
+            width: 500px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border-radius: 2px;
+        }
+        .modal-header {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            background: #f8f8f8;
+        }
+        .modal-close {
+            cursor: pointer;
+            color: #999;
+        }
+        .modal-body {
+            padding: 20px 40px;
+        }
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-footer {
+            padding: 10px 15px;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+        .btn-confirm {
+            background: #ff6600;
+            color: #fff;
+            border: none;
+            width: 120px;
+            height: 36px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- 侧边栏 (仿截图菜单结构) -->
+    <aside class="sidebar">
+        <div class="logo">
+            <!-- 模拟Logo图标 -->
+            <div style="width:30px; height:30px; background:var(--primary-color); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; margin-right:10px;">药</div>
+            <span class="logo-text">供应商管理平台</span>
+        </div>
+        <div class="menu">
+            <div class="menu-item"><span class="menu-icon">☆</span>收藏菜单<span class="menu-arrow">v</span></div>
+            <div class="menu-item"><span class="menu-icon">📦</span>商品管理<span class="menu-arrow">></span></div>
+            <div class="menu-item"><span class="menu-icon">📄</span>订单管理<span class="menu-arrow">></span></div>
+            <div class="menu-item"><span class="menu-icon">🏷️</span>促销管理<span class="menu-arrow">></span></div>
+            <div class="menu-item"><span class="menu-icon">📢</span>广告申请<span class="menu-arrow">></span></div>
+            <div class="menu-item"><span class="menu-icon">💬</span>用户反馈<span class="menu-arrow">></span></div>
+            <div class="menu-item"><span class="menu-icon">📊</span>统计分析<span class="menu-arrow">></span></div>
+            
+            <!-- 资金管理 -->
+            <div class="menu-item" id="menu-fund" onclick="switchMainTab('fund')">
+                <span class="menu-icon">💰</span>资金管理
+                <span class="menu-arrow">v</span>
+            </div>
+            <!-- 资金管理子菜单 (模拟) -->
+            <div id="submenu-fund" style="background:#f9f9f9; display:none;">
+                <div class="menu-item" style="padding-left:45px; font-size:11px;" onclick="navigateToQuota()">营销服务额度</div>
+            </div>
+
+            <div class="menu-item"><span class="menu-icon">🏥</span>药店管理<span class="menu-arrow">></span></div>
+            <div class="menu-item"><span class="menu-icon">👨‍⚕️</span>诊所专区<span class="menu-arrow">></span></div>
+            <div class="menu-item"><span class="menu-icon">🏪</span>店铺管理<span class="menu-arrow">></span></div>
+            <div class="menu-item"><span class="menu-icon">📺</span>直播管理<span class="menu-arrow">></span></div>
+            
+            <!-- 营销中心 (新入口) -->
+            <div class="menu-item active" id="menu-marketing" onclick="switchMainTab('marketing')">
+                <span class="menu-icon">🚀</span>营销中心
+                <span class="menu-arrow">v</span>
+            </div>
+             <!-- 营销中心子菜单 -->
+             <div id="submenu-marketing" style="background:#f9f9f9;">
+                <div class="menu-item active" style="padding-left:45px; font-size:11px;" onclick="navigateToMarketingList()">专品券推广</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 主布局 -->
+    <main class="main-layout">
+        <!-- 顶部 Header -->
+        <header class="header">
+            <div class="header-left">
+                <span class="store-name">大康华</span>
+                <span class="store-badge">店铺即将上架 ?</span>
+                <span class="erp-status">● ERP对接状态：<span>对接异常，请检查对接工具！</span></span>
+            </div>
+            <div class="header-right">
+                <span>🔔 每个用户知晓测试2</span>
+                <span>规则中心</span>
+                <span>下载APP v</span>
+                <span>📤 导出任务列表</span>
+                <span>19918812066 v</span>
+            </div>
+        </header>
+
+        <!-- 顶部 Tab 栏 -->
+        <div class="content-tabs">
+            <div class="tab-item" id="tab-home">首页</div>
+            <div class="tab-item active" id="tab-main-title">专品券推广</div>
+        </div>
+
+        <!-- 页面内容容器 -->
+        <div class="page-container">
+
+            <!-- VIEW 1: 专品券推广列表 (位于营销中心下) -->
+            <div id="view-list">
+                <!-- 提示：引导去资金管理 -->
+                <div style="background:#fff7e6; border:1px solid #ffd591; padding:10px; margin-bottom:15px; font-size:12px; color:#333;">
+                    <span style="font-weight:bold; margin-right:5px;">ⓘ 营销额度说明：</span>
+                    当前可用额度：<span style="color:#ff6600; font-weight:bold;">2.52</span> 元。
+                    如需查看明细或充值，请前往 <a onclick="navigateToQuota()">资金管理-营销服务额度</a>。
+                </div>
+
+                <div class="promotion-list-toolbar">
+                    <div>
+                        状态：
+                        <select class="input-control" style="width:100px">
+                            <option>全部</option>
+                            <option>进行中</option>
+                            <option>未开始</option>
+                        </select>
+                        <input type="text" class="input-control" placeholder="输入活动名称/ID" style="width:180px; margin-left:10px;">
+                        <button class="btn-search ml-10">查询</button>
+                    </div>
+                    <button class="btn-create" onclick="navigateToCreate()">+ 新建专品券推广</button>
+                </div>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th width="25%">活动名称</th>
+                            <th width="10%">状态</th>
+                            <th width="15%">推广药品</th>
+                            <th width="10%">发券量</th>
+                            <th width="10%">核销数量</th>
+                            <th width="15%">消耗额度</th>
+                            <th width="15%">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promotion-list-body">
+                        <tr>
+                            <td>
+                                <div class="bold">999感冒灵采购专享券</div>
+                                <div class="text-gray">ID: 20231027001</div>
+                            </td>
+                            <td><span class="promo-status-badge status-running">进行中</span></td>
+                            <td>999感冒灵颗粒</td>
+                            <td>5,000</td>
+                            <td>1,234</td>
+                            <td>¥ 6,170.00</td>
+                            <td>
+                                <a onclick="navigateToDetail('20231027001', '999感冒灵采购专享券')">查看数据</a>
+                                <span style="color:#ddd; margin:0 5px;">|</span>
+                                <a style="color:var(--danger-color)">停止</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="bold">高血压慢病关怀券</div>
+                                <div class="text-gray">ID: 20231201005</div>
+                            </td>
+                            <td><span class="promo-status-badge status-pending">未开始</span></td>
+                            <td>苯磺酸氨氯地平片</td>
+                            <td>10,000</td>
+                            <td>0</td>
+                            <td>¥ 0.00</td>
+                            <td>
+                                <a onclick="navigateToDetail('20231201005', '高血压慢病关怀券')">查看数据</a>
+                                <span style="color:#ddd; margin:0 5px;">|</span>
+                                <a onclick="navigateToCreate()">编辑</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- VIEW 2: 新建专品券推广 (Form) -->
+            <div id="view-create" class="hidden form-container">
+                <a class="back-link" onclick="navigateToMarketingList()">&lt; 返回列表</a>
+                
+                <div class="form-section">
+                    <div class="form-title">基础信息</div>
+                    
+                    <div class="form-item" id="field-product">
+                        <div class="form-label required">药品选择</div>
+                        <div class="form-content">
+                            <div style="display:flex; gap:10px;">
+                                <input type="text" class="input-control" id="productInput" placeholder="请输入药品批准文号或通用名" readonly style="cursor: pointer; width: 300px;" onclick="mockProductSelect()">
+                                <button class="btn-cancel" onclick="mockProductSelect()" style="margin:0; width:auto; padding:0 15px;">选择药品</button>
+                            </div>
+                            <div class="hint-text">仅支持选择已上架且资质合规的药品</div>
+                            <div class="error-msg">请选择推广药品</div>
+                        </div>
+                    </div>
+
+                    <div class="form-item">
+                        <div class="form-label required">优惠方式</div>
+                        <div class="form-content">
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="discountType" value="amount" checked onchange="toggleDiscountType()"> 固定金额 (减钱)
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="discountType" value="rate" onchange="toggleDiscountType()"> 折扣 (打折)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-item" id="field-discount-value">
+                        <div class="form-label required">面额设置</div>
+                        <div class="form-content">
+                            <div id="input-amount-group" style="display:flex; align-items:center;">
+                                <span style="margin-right:5px;">减</span>
+                                <input type="number" class="input-control" style="width: 100px; margin-right:5px;" placeholder="例如: 10">
+                                <span>元</span>
+                            </div>
+                            <div id="input-rate-group" class="hidden" style="display:flex; align-items:center;">
+                                <span style="margin-right:5px;">打</span>
+                                <input type="number" class="input-control" style="width: 100px; margin-right:5px;" placeholder="例如: 9.5">
+                                <span>折</span>
+                            </div>
+                            <div class="error-msg">请输入有效的优惠数值</div>
+                        </div>
+                    </div>
+
+                    <div class="form-item" id="field-total">
+                        <div class="form-label required">发放总张数</div>
+                        <div class="form-content">
+                            <input type="number" class="input-control" style="width: 150px;" placeholder="请输入正整数">
+                            <span style="margin-left:5px;">张</span>
+                            <div class="error-msg">请输入发放数量</div>
+                        </div>
+                    </div>
+
+                    <div class="form-item" id="field-date">
+                        <div class="form-label required">有效期</div>
+                        <div class="form-content">
+                            <input type="date" class="input-control" style="width: 140px;">
+                            <span style="margin:0 5px;">至</span>
+                            <input type="date" class="input-control" style="width: 140px;">
+                            <div class="error-msg">请完善有效起止时间</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-title">推广规则</div>
+                    <div class="form-item">
+                        <div class="form-label">使用人群</div>
+                        <div class="form-content">
+                            <input type="text" class="input-control readonly" value="药店/诊所新客" disabled style="width: 300px;">
+                            <div class="hint-text">仅限店铺从未采购过该药品的新客户领取</div>
+                        </div>
+                    </div>
+                    <div class="form-item">
+                        <div class="form-label">支付方式</div>
+                        <div class="form-content">
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" checked disabled> 全平台可用
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-block">
+                    <span class="bold">ⓘ 营销消耗规则：</span>每核销 1 张优惠券，将从您的账户余额中扣除对应营销服务额度（即优惠金额 + 技术服务费）。
+                </div>
+
+                <div style="border-top:1px solid #eee; padding-top:20px; text-align:center;">
+                    <button class="btn-cancel" onclick="navigateToMarketingList()">取消</button>
+                    <button class="btn-submit" onclick="handleSubmit()">保存并启动推广</button>
+                </div>
+            </div>
+
+            <!-- VIEW 3: 推广效果详情页 (Detail) -->
+            <div id="view-detail" class="hidden">
+                <a class="back-link" onclick="navigateToMarketingList()">&lt; 返回列表</a>
+                
+                <div class="detail-header">
+                    <h2 class="detail-title" id="detail-title">推广效果：999感冒灵采购专享券 (20231027001)</h2>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">已发券数量</div>
+                        <div class="stat-value">5,000<span class="stat-unit">张</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">已核销数量</div>
+                        <div class="stat-value" style="color: var(--success-color);">1,234<span class="stat-unit">张</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">已消耗营销额度</div>
+                        <div class="stat-value" style="color: #ff9900;">6,170.00<span class="stat-unit">元</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">带来成交金额</div>
+                        <div class="stat-value">125,800.00<span class="stat-unit">元</span></div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div style="font-weight:bold; margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid #eee;">核销数量趋势</div>
+                    <div class="chart-placeholder">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 16px;">
+                            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+                            <polyline points="17 18 11 12 6 17"></polyline>
+                        </svg>
+                        <div>图表可视化区域（核销趋势图）</div>
+                        <div style="font-size: 12px; margin-top: 8px;">在此处展示 ECharts 或 Highcharts 折线图</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 页面 4: 营销服务额度 (位于资金管理下，还原截图) -->
+            <div id="view-quota-details" class="hidden">
+                <!-- 顶部额度大数字 -->
+                <div class="quota-header-banner">
+                    <span class="quota-big-text">营销服务额度：</span>
+                    <span class="quota-number">2.52</span>
+                    <button class="btn-buy" onclick="openBuyModal()">购买额度</button>
+                    <div class="quota-desc">
+                        <div>说明</div>
+                        <div>测试测试 测试1</div>
+                    </div>
+                </div>
+
+                <!-- 筛选栏 -->
+                <div class="filter-bar">
+                    <div class="filter-item">
+                        <span class="filter-label">时间</span>
+                        <input type="text" class="input-control" placeholder="" value="">
+                        <input type="text" class="input-control" placeholder="00:00:00" style="width:80px; margin-left:5px;">
+                        <span style="margin:0 5px;">--</span>
+                        <input type="text" class="input-control" placeholder="23:59:59" style="width:80px;">
+                    </div>
+                    <div class="filter-item">
+                        <span class="filter-label">来源</span>
+                        <select class="input-control">
+                            <option>全部</option>
+                        </select>
+                    </div>
+                    <button class="btn-search">搜 索</button>
+                    <button class="btn-export">导 出</button>
+                </div>
+
+                <div style="margin-bottom:10px; color:#666;">
+                    显示 <select style="border:1px solid #ccc;"><option>10</option></select> 条数据
+                </div>
+
+                <!-- 额度明细表格 -->
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>订单号</th>
+                            <th>业务类型</th>
+                            <th>活动ID</th>
+                            <th>收支</th>
+                            <th>来源</th>
+                            <th>营销额度</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 新增需求：专品券推广核销扣费 -->
+                        <tr>
+                            <td>2023-11-21 22:55:10</td>
+                            <td>1312797300</td>
+                            <td>专品券推广-核销扣费</td>
+                            <td>20231027001</td>
+                            <td>-5.00</td>
+                            <td>商家赠付</td>
+                            <td>2.52</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>2023-11-21 22:50:04</td>
+                            <td>1312797294</td>
+                            <td>小额打款</td>
+                            <td></td>
+                            <td>-1.00</td>
+                            <td>商家赠付</td>
+                            <td>7.52</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>2023-11-21 22:50:04</td>
+                            <td>1312797293</td>
+                            <td>小额打款</td>
+                            <td></td>
+                            <td>-100.00</td>
+                            <td>商家赠付</td>
+                            <td>8.52</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>2023-11-21 22:50:03</td>
+                            <td>1312797292</td>
+                            <td>小额打款</td>
+                            <td></td>
+                            <td>-100.00</td>
+                            <td>商家赠付</td>
+                            <td>108.52</td>
+                            <td></td>
+                        </tr>
+                         <tr>
+                            <td>2023-11-21 20:30:06</td>
+                            <td>1312797283</td>
+                            <td>小额打款</td>
+                            <td></td>
+                            <td>-166.00</td>
+                            <td>商家赠付</td>
+                            <td>208.52</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div style="background:#f9f9f9; padding:10px; border:1px solid #ddd; border-top:none; display:flex; justify-content:space-between; align-items:center;">
+                    <span>总共494条数据 (当前为第1条到第10条)</span>
+                    <div style="display:flex; gap:5px;">
+                        <button style="padding:2px 8px; border:1px solid #ddd; background:#fff;">«</button>
+                        <button style="padding:2px 8px; border:1px solid #ddd; background:#fff;">‹</button>
+                        <button style="padding:2px 8px; border:1px solid #ddd; background:#e65c00; color:#fff;">1</button>
+                        <button style="padding:2px 8px; border:1px solid #ddd; background:#fff;">2</button>
+                        <button style="padding:2px 8px; border:1px solid #ddd; background:#fff;">3</button>
+                        <button style="padding:2px 8px; border:1px solid #ddd; background:#fff;">4</button>
+                        <button style="padding:2px 8px; border:1px solid #ddd; background:#fff;">5</button>
+                        <button style="padding:2px 8px; border:1px solid #ddd; background:#fff;">›</button>
+                        <button style="padding:2px 8px; border:1px solid #ddd; background:#fff;">»</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 弹窗：购买营销服务额度 -->
+    <div id="modal-buy-quota" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>购买营销服务额度</span>
+                <span class="modal-close" onclick="closeBuyModal()">×</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <label class="form-label">额度：</label>
+                    <select class="input-control" style="width:200px">
+                        <option>100 (价值100元)</option>
+                        <option>500 (价值500元)</option>
+                        <option>1000 (价值1000元)</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">支付方式：</label>
+                    <div style="font-size:12px;">
+                        <label style="margin-right:15px; cursor:pointer;">
+                            <input type="radio" name="payType" checked> 余额支付 (可用余额66.88)
+                        </label>
+                        <label style="cursor:pointer;">
+                            <input type="radio" name="payType"> 对公汇款
+                        </label>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">短信验证码：</label>
+                    <input type="text" class="input-control" style="width:100px; margin-right:10px;">
+                    <button style="height:28px; background:#ffaa55; color:#fff; border:none; padding:0 10px; border-radius:2px; cursor:pointer;">获取验证码</button>
+                </div>
+                <div style="margin-left:95px; font-size:12px; color:#666;">
+                    验证码将发送至手机号：123****
+                </div>
+                <div style="margin-top:20px; text-align:center;">
+                    <button class="btn-confirm" onclick="closeBuyModal()">确认提交</button>
+                </div>
+                <div style="margin-top:20px; font-size:12px; color:#999; line-height:1.6;">
+                    余额支付为商家自行开展的营销活动，平台不提供开票服务。<br>
+                    如需电汇转账，请选择“对公汇款”。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局状态管理
+        let currentTab = 'marketing'; // 'marketing' | 'fund'
+
+        // 导航切换逻辑 (Top Level Sidebar)
+        function switchMainTab(module) {
+            currentTab = module;
+
+            // 重置侧边栏状态
+            document.getElementById('menu-fund').classList.remove('active');
+            document.getElementById('submenu-fund').style.display = 'none';
+            document.getElementById('menu-marketing').classList.remove('active');
+            document.getElementById('submenu-marketing').style.display = 'none';
+
+            if (module === 'fund') {
+                document.getElementById('menu-fund').classList.add('active');
+                document.getElementById('submenu-fund').style.display = 'block';
+            } else if (module === 'marketing') {
+                document.getElementById('menu-marketing').classList.add('active');
+                document.getElementById('submenu-marketing').style.display = 'block';
+                
+                // 修复：直接在此处执行显示列表页的逻辑，避免与 navigateToMarketingList 循环调用
+                hideAllViews();
+                document.getElementById('view-list').classList.remove('hidden');
+                updateTabTitle('专品券推广');
+            }
+        }
+
+        // 资金管理 - 跳转到额度明细
+        function navigateToQuota() {
+            switchMainTab('fund');
+            
+            hideAllViews();
+            document.getElementById('view-quota-details').classList.remove('hidden');
+            
+            updateTabTitle('营销服务额度');
+        }
+
+        // 营销中心 - 跳转到列表
+        function navigateToMarketingList() {
+            // 修复：仅需调用 switchMainTab 即可，因为 switchMainTab 内部已经包含了显示列表的逻辑
+            switchMainTab('marketing'); 
+        }
+
+        // 营销中心 - 跳转到新建
+        function navigateToCreate() {
+            hideAllViews();
+            document.getElementById('view-create').classList.remove('hidden');
+            updateTabTitle('专品券推广 / 新建');
+            
+            // 重置表单错误
+            document.querySelectorAll('.form-item').forEach(el => el.classList.remove('has-error'));
+        }
+
+        // 营销中心 - 跳转到详情
+        function navigateToDetail(id, name) {
+            hideAllViews();
+            document.getElementById('view-detail').classList.remove('hidden');
+            
+            const title = name ? `推广效果：${name}` : '推广效果详情';
+            document.getElementById('detail-title').innerText = `${title} (${id})`;
+            updateTabTitle('专品券推广 / 详情');
+        }
+
+        // 辅助：隐藏所有视图
+        function hideAllViews() {
+            document.getElementById('view-list').classList.add('hidden');
+            document.getElementById('view-create').classList.add('hidden');
+            document.getElementById('view-detail').classList.add('hidden');
+            document.getElementById('view-quota-details').classList.add('hidden');
+        }
+
+        // 辅助：更新顶部 Tab 标题
+        function updateTabTitle(text) {
+            const tab = document.getElementById('tab-main-title');
+            tab.innerText = text;
+            tab.classList.add('active');
+        }
+
+        // ==========================================
+        // 业务逻辑：新建推广表单交互
+        // ==========================================
+
+        function mockProductSelect() {
+            const input = document.getElementById('productInput');
+            const mockProducts = [
+                "SKU: 8801024 - 阿莫西林胶囊 0.25g*48粒/盒 (白云山)",
+                "SKU: 8805012 - 布洛芬缓释胶囊 0.3g*24粒/盒 (芬必得)",
+                "SKU: 8803399 - 连花清瘟胶囊 0.35g*24粒/盒 (以岭药业)"
+            ];
+            const randomProduct = mockProducts[Math.floor(Math.random() * mockProducts.length)];
+            input.value = randomProduct;
+            document.getElementById('field-product').classList.remove('has-error');
+        }
+
+        function toggleDiscountType() {
+            const type = document.querySelector('input[name="discountType"]:checked').value;
+            const amountGroup = document.getElementById('input-amount-group');
+            const rateGroup = document.getElementById('input-rate-group');
+            
+            if (type === 'amount') {
+                amountGroup.classList.remove('hidden');
+                amountGroup.style.display = 'flex';
+                rateGroup.classList.add('hidden');
+            } else {
+                amountGroup.classList.add('hidden');
+                rateGroup.classList.remove('hidden');
+                rateGroup.style.display = 'flex';
+            }
+        }
+
+        function handleSubmit() {
+            let hasError = false;
+
+            // 1. 验证药品
+            const productVal = document.getElementById('productInput').value;
+            if (!productVal) {
+                document.getElementById('field-product').classList.add('has-error');
+                hasError = true;
+            }
+
+            // 2. 验证数量
+            const totalInput = document.querySelector('#field-total input');
+            const totalVal = totalInput.value;
+            if (!totalVal || totalVal <= 0) {
+                document.getElementById('field-total').classList.add('has-error');
+                hasError = true;
+            } else {
+                document.getElementById('field-total').classList.remove('has-error');
+            }
+
+            // 3. 验证日期
+            const dateInputs = document.querySelectorAll('#field-date input');
+            if (!dateInputs[0].value || !dateInputs[1].value) {
+                document.getElementById('field-date').classList.add('has-error');
+                hasError = true;
+            } else {
+                document.getElementById('field-date').classList.remove('has-error');
+            }
+
+            if (hasError) return;
+
+            // 模拟提交成功
+            alert("提交成功！\n推广活动已创建。");
+            
+            // 简单插入一条新数据到列表用于演示
+            const newId = '2023' + Math.floor(100000 + Math.random() * 900000);
+            let drugName = productVal.split('-')[1] || '未知药品';
+            drugName = drugName.trim().split(' ')[0];
+            const voucherName = drugName + ' 采购专享券';
+            
+            const tbody = document.getElementById('promotion-list-body');
+            const row = `
+                 <tr>
+                    <td>
+                        <div class="bold">${voucherName}</div>
+                        <div class="text-gray">ID: ${newId}</div>
+                    </td>
+                    <td><span class="promo-status-badge status-pending">未开始</span></td>
+                    <td>${drugName}</td>
+                    <td>${Number(totalVal).toLocaleString()}</td>
+                    <td>0</td>
+                    <td>¥ 0.00</td>
+                    <td>
+                        <a onclick="navigateToDetail('${newId}', '${voucherName}')">查看数据</a>
+                        <span style="color:#ddd; margin:0 5px;">|</span>
+                        <a onclick="navigateToCreate()">编辑</a>
+                    </td>
+                </tr>
+            `;
+            tbody.insertAdjacentHTML('afterbegin', row);
+
+            navigateToMarketingList();
+        }
+
+
+        // ==========================================
+        // 业务逻辑：弹窗
+        // ==========================================
+        function openBuyModal() {
+            document.getElementById('modal-buy-quota').classList.remove('hidden');
+        }
+
+        function closeBuyModal() {
+            document.getElementById('modal-buy-quota').classList.add('hidden');
+        }
+
+        // 初始化
+        switchMainTab('marketing');
+
+    </script>
+</body>
+</html>
